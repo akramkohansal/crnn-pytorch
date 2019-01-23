@@ -10,6 +10,8 @@ from torch.utils.data import Dataset
 import json
 import os
 import cv2
+import string
+
 
 class LoadDataset(Dataset):
     def __init__(self, data_path, mode="recog", transform=None, abc=string.digits):
