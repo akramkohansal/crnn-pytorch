@@ -24,7 +24,7 @@ from dataset.data_transform import Resize, Rotation, Translation, Scale
 from models.model_loader import load_model
 from torchvision.transforms import Compose
 
-def detect(net, data, abc, cuda, visualize, batch_size=256):
+def detect(net, data, cuda, visualize, batch_size=256):
     data_loader = DataLoader(data, batch_size=batch_size, num_workers=4, shuffle=False, collate_fn=text_collate)
 
     count = 0
@@ -58,11 +58,11 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, gpu, visualize
         Resize(size=(input_size[0], input_size[1]))
     ])
     if data_path is not None:
-        data = LoadDataset(data_path=data_path, mode="recog", transform=transform)
+        data = LoadDataset(data_path=data_path, mode="recog", transform=transform, abc=abc)
     
     seq_proj = [int(x) for x in seq_proj.split('x')]
     net = load_model(data.get_abc(), seq_proj, backend, snapshot, cuda).eval()
-    detect(net, data, data.get_abc(), cuda, visualize)
+    detect(net, data, cuda, visualize)
     
 
 if __name__ == '__main__':

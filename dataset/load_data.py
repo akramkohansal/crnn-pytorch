@@ -12,16 +12,21 @@ import os
 import cv2
 
 class LoadDataset(Dataset):
-    def __init__(self, data_path, mode="recog", transform=None):
-        super().__init__()
+    def __init__(self, data_path, mode="recog", transform=None, abc=string.digits):
+        #super().__init__()
         self.data_path = data_path
         self.mode = mode
         #self.config = json.load(open(os.path.join(data_path, "desc.json")))
         self.transform = transform
+        self.abc = abc
+
 
     def set_mode(self, mode):
         self.mode = mode
 
+    def get_abc(self):
+        return self.abc
+    
     def __len__(self):
         if self.mode == "test":
             return int(len(self.config[self.mode]) * 0.01)
