@@ -32,11 +32,14 @@ class LoadDataset(Dataset):
     def __len__(self):
         if self.mode == "test":
             return int(len(self.config[self.mode]) * 0.01)
-        return len(self.config[self.mode])
+        return 2
 
     def __getitem__(self, idx):
-        name = self.config[self.mode][idx]["name"]
-
+        image_list = os.listdir(self.data_path)
+        
+        name = image_list[idx]
+        print('imahe samples')
+        print(name)
         img = cv2.imread(os.path.join(self.data_path, name))
         sample = {"img": img, "aug": self.mode == "recog"}
         if self.transform:
