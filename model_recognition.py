@@ -52,6 +52,7 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, gpu, visualize
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu
     cuda = True if gpu is not '' else False
 
+    os.environ['CUDA_VISIBLE_DEVICES'] = gpu
     input_size = [int(x) for x in input_size.split('x')]
     transform = Compose([
         Rotation(),
