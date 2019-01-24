@@ -14,13 +14,13 @@ import string
 
 
 class LoadDataset(Dataset):
-     def __init__(self, data_path, mode="real", transform=None):
+    def __init__(self, data_path, mode="real", transform=None):
         #super().__init__()
         self.data_path = data_path
         self.mode = mode
         self.config = json.load(open(os.path.join(data_path, "desc.json")))
         self.transform = transform
-
+        
     def abc_len(self):
         return len(self.config["abc"])
 
