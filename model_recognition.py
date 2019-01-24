@@ -59,7 +59,7 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, gpu, visualize
         Resize(size=(input_size[0], input_size[1]))
     ])
     if data_path is not None:
-        data = LoadDataset(data_path=data_path, mode="recog", transform=transform)
+        data = LoadDataset(data_path=data_path, mode="real", transform=transform)
     
     seq_proj = [int(x) for x in seq_proj.split('x')]
     net = load_model(data.get_abc(), seq_proj, backend, snapshot, cuda).eval()
