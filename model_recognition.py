@@ -36,7 +36,9 @@ def detect(net, data, cuda, visualize, batch_size=256):
         if cuda:
             imgs = imgs.cuda()
         out = net(imgs, decode=True)
-        
+        print(out)
+        for i in range(len(out)):
+            print(out[i])
     #return acc, avg_ed
 
 @click.command()
