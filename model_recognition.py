@@ -33,6 +33,8 @@ def detect(net, data, cuda, visualize, batch_size=256):
     iterator = tqdm(data_loader)
     for sample in iterator:
         imgs = Variable(sample["img"])
+        print("imagessss")
+        print(imgs)
         if cuda:
             imgs = imgs.cuda()
         out = net(imgs, decode=True)
