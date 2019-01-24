@@ -14,34 +14,42 @@ import string
 
 
 class LoadDataset(Dataset):
-    def __init__(self, data_path, mode="recog", transform=None, abc=string.digits):
+     def __init__(self, data_path, mode="real", transform=None):
         #super().__init__()
         self.data_path = data_path
         self.mode = mode
-        #self.config = json.load(open(os.path.join(data_path, "desc.json")))
+        self.config = json.load(open(os.path.join(data_path, "desc.json")))
         self.transform = transform
-        self.abc = abc
 
+    def abc_len(self):
+        return len(self.config["abc"])
+
+    def get_abc(self):
+        return self.config["abc"]
 
     def set_mode(self, mode):
         self.mode = mode
 
-    def get_abc(self):
-        return self.abc
-    
     def __len__(self):
-        if self.mode == "test":
+        if self.mode == "real":
             return int(len(self.config[self.mode]) * 0.01)
-        return 2
+        return len(self.config[self.mode])
 
     def __getitem__(self, idx):
-        image_list = os.listdir(self.data_path)
-        
-        name = image_list[idx]
-        print('imahe samples')
-        print(name)
+        name = self.config[self.mode][idx]["name"]
+        text = self.config[self.mode][idx]["text"]
+
+        # img = cv2.imread(os.path.join(self.data_path, "data", name))
         img = cv2.imread(os.path.join(self.data_path, name))
-        sample = {"img": img, "aug": self.mode == "recog"}
+        seq = self.text_to_seq(text)
+        sample = {"img": img, "seq": seq, "seq_len": len(seq), "aug": self.mode == "real"}
         if self.transform:
             sample = self.transform(sample)
         return sample
+
+    def text_to_seq(self, text):
+        seq = []
+        for c in text:
+            seq.append(self.config["abc"].find(c) + 1)
+        return seq
+
