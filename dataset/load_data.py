@@ -31,23 +31,22 @@ class LoadDataset(Dataset):
         self.mode = mode
 
     def __len__(self):
-        if self.mode == "real":
-            return int(len(self.config[self.mode]) * 0.01)
+       
         return len(self.config[self.mode])
 
     def __getitem__(self, idx):
         
         name = self.config[self.mode][idx]["name"]
         text = self.config[self.mode][idx]["text"]
-
-        # img = cv2.imread(os.path.join(self.data_path, "data", name))
+        #print("name is dataset", name)
+        #print("text in dataset", text)
         img = cv2.imread(os.path.join(self.data_path, name))
         seq = self.text_to_seq(text)
-        print(seq)
-        sample = {"img": img, "seq": seq, "seq_len": len(seq), "aug": self.mode == "real"}
-        print(sample)
+        sample = {"img": img, "seq": seq, "seq_len": len(seq), "aug": self.mode == "test", "imgname":name}
+        
         if self.transform:
             sample = self.transform(sample)
+        #print(sample["imgname"])
         return sample
 
     def text_to_seq(self, text):

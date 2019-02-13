@@ -11,7 +11,7 @@ class TestDataset(Dataset):
                  seq_len = 8,
                  transform=None,
                  abc=string.digits):
-        super().__init__()
+        #super().__init__()
         self.abc = abc
         self.epoch_len = epoch_len
         self.seq_len = seq_len
@@ -35,6 +35,7 @@ class TestDataset(Dataset):
         seq = []
         img = np.zeros((h, w), dtype=np.uint8)
         text = self.generate_string()
+        print("in test--")
         for i in range(len(text)):
             c = text[i]
             seq.append(self.abc.find(c) + 1)

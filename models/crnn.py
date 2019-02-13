@@ -47,9 +47,13 @@ class CRNN(nn.Module):
     def forward(self, x, decode=False):
         hidden = self.init_hidden(x.size(0), next(self.parameters()).is_cuda)
         features = self.cnn(x)
+        #print(features)
         features = self.features_to_sequence(features)
+        
         seq, hidden = self.rnn(features, hidden)
+        
         seq = self.linear(seq)
+        
         if not self.training:
             seq = self.softmax(seq)
             if decode:
@@ -68,12 +72,20 @@ class CRNN(nn.Module):
         b, c, h, w = features.size()
         assert h == 1, "the height of out must be 1"
         if not self.fully_conv:
+            print("is not fully ")
             features = features.permute(0, 3, 2, 1)
+            #print(features)
             features = self.proj(features)
+            #print(features)
             features = features.permute(1, 0, 2, 3)
+            #print(features)
         else:
+            print("is fully ")
             features = features.permute(3, 0, 2, 1)
+        #print(features.shape)    
         features = features.squeeze(2)
+        #print(features.shape)
+        #print(features)
         return features
 
     def get_block_size(self, layer):
@@ -81,6 +93,8 @@ class CRNN(nn.Module):
 
     def pred_to_string(self, pred):
         seq = []
+        print(pred.shape[0])
+        #print(pred)
         for i in range(pred.shape[0]):
             label = np.argmax(pred[i])
             seq.append(label - 1)
@@ -88,6 +102,8 @@ class CRNN(nn.Module):
         for i in range(len(seq)):
             if len(out) == 0:
                 if seq[i] != -1:
+                    print("in sequences")
+                    #print(seq[i])
                     out.append(seq[i])
             else:
                 if seq[i] != -1 and seq[i] != seq[i - 1]:
@@ -96,6 +112,7 @@ class CRNN(nn.Module):
         return out
 
     def decode(self, pred):
+        #print(pred)
         pred = pred.permute(1, 0, 2).cpu().data.numpy()
         seq = []
         for i in range(pred.shape[0]):

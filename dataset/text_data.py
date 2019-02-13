@@ -5,7 +5,7 @@ import cv2
 
 class TextDataset(Dataset):
     def __init__(self, data_path, mode="train", transform=None):
-        super().__init__()
+        #super().__init__()
         self.data_path = data_path
         self.mode = mode
         self.config = json.load(open(os.path.join(data_path, "desc.json")))
@@ -22,17 +22,20 @@ class TextDataset(Dataset):
 
     def __len__(self):
         if self.mode == "test":
-            return int(len(self.config[self.mode]) * 0.01)
+            return int(len(self.config[self.mode]) * 0.01 )
+        print (len(self.config[self.mode]))   
+        print("test length")
         return len(self.config[self.mode])
 
     def __getitem__(self, idx):
         name = self.config[self.mode][idx]["name"]
         text = self.config[self.mode][idx]["text"]
-
+        #print("name is dataset", name)
+        #print("text in dataset", text)
         # img = cv2.imread(os.path.join(self.data_path, "data", name))
         img = cv2.imread(os.path.join(self.data_path, name))
         seq = self.text_to_seq(text)
-        sample = {"img": img, "seq": seq, "seq_len": len(seq), "aug": self.mode == "train"}
+        sample = {"img": img, "seq": seq, "seq_len": len(seq), "aug": self.mode == "train", "imgname":name}
         if self.transform:
             sample = self.transform(sample)
         return sample

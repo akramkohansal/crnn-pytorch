@@ -18,13 +18,15 @@ from torchvision.transforms import Compose
 
 import editdistance
 
-def test(net, data, abc, cuda, visualize, batch_size=256):
+def test(net, data, abc, cuda, visualize, batch_size=1):
     data_loader = DataLoader(data, batch_size=batch_size, num_workers=4, shuffle=False, collate_fn=text_collate)
-
+    print(data_loader)
     count = 0
     tp = 0
     avg_ed = 0
     iterator = tqdm(data_loader)
+    #print("length")
+    #print(len(iterator))
     for sample in iterator:
         imgs = Variable(sample["img"])
         if cuda:
@@ -34,14 +36,21 @@ def test(net, data, abc, cuda, visualize, batch_size=256):
         lens = sample["seq_len"].numpy().tolist()
         pos = 0
         key = ''
+        #print(sample["imgname"])
         for i in range(len(out)):
             gts = ''.join(abc[c] for c in gt[pos:pos+lens[i]])
+            #print("gts is ----")
+            #print(gts)
+            #print("detected is")
+            #print(out[i])
             pos += lens[i]
-            if gts == out[i]:
+            if gts.lower() == out[i].lower():
                 tp += 1
+                #print(tp)
             else:
                 avg_ed += editdistance.eval(out[i], gts)
             count += 1
+            #print(count)
             if visualize:
                 status = "pred: {}; gt: {}".format(out[i], gts)
                 iterator.set_description(status)
@@ -54,9 +63,10 @@ def test(net, data, abc, cuda, visualize, batch_size=256):
             break
         if not visualize:
             iterator.set_description("acc: {0:.4f}; avg_ed: {0:.4f}".format(tp / count, avg_ed / count))
-
-    acc = tp / count
-    avg_ed = avg_ed / count
+    #print(tp)
+    #print(count)
+    acc = float(tp) / count
+    avg_ed = float(avg_ed) / count
     return acc, avg_ed
 
 @click.command()

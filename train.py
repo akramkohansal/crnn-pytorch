@@ -10,7 +10,7 @@ from dataset.test_data import TestDataset
 from dataset.text_data import TextDataset
 from dataset.collate_fn import text_collate
 from lr_policy import StepLR
-
+import time
 import torch
 from torch import nn
 from torch import optim
@@ -37,21 +37,35 @@ from test import test
 @click.option('--test-init', type=bool, default=False, help='Test initialization')
 @click.option('--gpu', type=str, default='0', help='List of GPUs for parallel training, e.g. 0,1,2,3')
 def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_size, max_iter, batch_size, output_dir, test_epoch, test_init, gpu):
+    
+    seed = int(time.time())
+    print(seed)
+    torch.manual_seed(seed)
+    
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu
     cuda = True if gpu is not '' else False
 
+    if cuda:
+        torch.cuda.manual_seed(seed)
     input_size = [int(x) for x in input_size.split('x')]
+    
+    print(abc)
+    print(input_size)
     transform = Compose([
         Rotation(),
         # Translation(),
         # Scale(),
         Resize(size=(input_size[0], input_size[1]))
     ])
+    print(data_path)
     if data_path is not None:
         data = TextDataset(data_path=data_path, mode="train", transform=transform)
     else:
         data = TestDataset(transform=transform, abc=abc)
+    print(len(data))    
     seq_proj = [int(x) for x in seq_proj.split('x')]
+    print(seq_proj)
+    print(data.get_abc())
     net = load_model(data.get_abc(), seq_proj, backend, snapshot, cuda)
     optimizer = optim.Adam(net.parameters(), lr = base_lr, weight_decay=0.0001)
     lr_scheduler = StepLR(optimizer, step_size=step_size, max_iter=max_iter)
@@ -59,7 +73,8 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
 
     acc_best = 0
     epoch_count = 0
-    while True:
+    for epoch_count in range(0, 50000):
+    #while True:
         if (test_epoch is not None and epoch_count != 0 and epoch_count % test_epoch == 0) or (test_init and epoch_count == 0):
             print("Test phase")
             data.set_mode("test")
@@ -69,10 +84,12 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
             data.set_mode("train")
             if acc > acc_best:
                 if output_dir is not None:
-                    torch.save(net.state_dict(), os.path.join(output_dir, "crnn_" + backend + "_" + str(data.get_abc()) + "_best"))
+                    torch.save(net.state_dict(), os.path.join(output_dir, "crnn_" + backend + "_" + str(epoch_count) + "_best"+'_checkpoint.pth.tar'))
                 acc_best = acc
             print("acc: {}\tacc_best: {}; avg_ed: {}".format(acc, acc_best, avg_ed))
 
+        net = net.train()
+        data.set_mode("train")
         data_loader = DataLoader(data, batch_size=batch_size, num_workers=1, shuffle=True, collate_fn=text_collate)
         loss_mean = []
         iterator = tqdm(data_loader)
@@ -94,12 +111,17 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
             nn.utils.clip_grad_norm(net.parameters(), 10.0)
             loss_mean.append(loss.data[0])
             status = "epoch: {}; iter: {}; lr: {}; loss_mean: {}; loss: {}".format(epoch_count, lr_scheduler.last_iter, lr_scheduler.get_lr(), np.mean(loss_mean), loss.data[0])
+            print(status)
             iterator.set_description(status)
             optimizer.step()
             lr_scheduler.step()
             iter_count += 1
-        if output_dir is not None:
-            torch.save(net.state_dict(), os.path.join(output_dir, "crnn_" + backend + "_" + str(data.get_abc()) + "_last"))
+            filename = 'epoch_'+str(epoch_count)+'_checkpoint.pth.tar'
+            if epoch_count % 50 == 0:
+                if output_dir is not None:
+                    weight_dir = os.path.join(output_dir, filename)
+                    torch.save(net.state_dict(), weight_dir)
+                    
         epoch_count += 1
 
     return
